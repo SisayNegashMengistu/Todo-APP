@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Todo App-JS</title>
+<meta name="description" content="A professional, animated task management workspace." />
+
+<!-- Fonts: Fraunces (display/serif), Inter (body/sans), IBM Plex Mono (data/mono) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="todo-app/css/style.css" />
+</head>
+<body>
+
+<!-- ============ LOADING SCREEN ============ -->
+<div class="load-screen" id="loadScreen" aria-hidden="true">
+  <div class="load-mark">
+    <span class="load-tick"></span>
+    <span class="load-tick"></span>
+    <span class="load-tick"></span>
+  </div>
+  <p class="load-label">Opening todo app…</p>
+</div>
+
+<!-- ============ TOAST CONTAINER ============ -->
+<div class="toast-stack" id="toastStack" aria-live="polite" aria-atomic="true"></div>
+
+<div class="app-shell">
+
+  <!-- ============ HEADER ============ -->
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" width="26" height="26"><path d="M6 4h20a2 2 0 0 1 2 2v20a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 11h14M9 16h14M9 21h9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </span>
+      <div class="brand-text">
+        <h1>Todo App</h1>
+        <p>Your task workspace</p>
+      </div>
+    </div>
+
+    <div class="header-search">
+      <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+      <input type="text" id="searchInput" placeholder="Search tasks… (press /)" aria-label="Search tasks" autocomplete="off" />
+      <button class="search-clear" id="searchClear" type="button" aria-label="Clear search" hidden><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+        <span class="theme-toggle-track">
+          <span class="theme-toggle-thumb">
+            <i class="fa-solid fa-sun" id="iconSun"></i>
+            <i class="fa-solid fa-moon" id="iconMoon"></i>
+          </span>
+        </span>
+      </button>
+      <button class="btn btn-primary" id="openAddTask" type="button">
+        <i class="fa-solid fa-plus"></i>
+        <span>New Task</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="sidebar" id="sidebar">
+      <nav class="filter-group" aria-label="Task filters">
+        <h2 class="sidebar-title">Views</h2>
+        <ul class="filter-list" id="filterList">
+          <li><button class="filter-item is-active" data-filter="all"><i class="fa-solid fa-layer-group"></i><span>All Tasks</span><em class="count" data-count="all">0</em></button></li>
+          <li><button class="filter-item" data-filter="active"><i class="fa-regular fa-circle"></i><span>Active</span><em class="count" data-count="active">0</em></button></li>
+          <li><button class="filter-item" data-filter="completed"><i class="fa-solid fa-circle-check"></i><span>Completed</span><em class="count" data-count="completed">0</em></button></li>
+          <li><button class="filter-item" data-filter="high"><i class="fa-solid fa-fire"></i><span>High Priority</span><em class="count" data-count="high">0</em></button></li>
+          <li><button class="filter-item" data-filter="today"><i class="fa-solid fa-calendar-day"></i><span>Due Today</span><em class="count" data-count="today">0</em></button></li>
+          <li><button class="filter-item" data-filter="overdue"><i class="fa-solid fa-triangle-exclamation"></i><span>Overdue</span><em class="count" data-count="overdue">0</em></button></li>
+        </ul>
+      </nav>
+
+      <nav class="filter-group" aria-label="Category filters">
+        <h2 class="sidebar-title">Categories</h2>
+        <ul class="filter-list" id="categoryList"></ul>
+      </nav>
+
+      <div class="sidebar-progress">
+        <h2 class="sidebar-title">Progress</h2>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 120 120" class="ring" width="120" height="120">
+            <circle cx="60" cy="60" r="52" class="ring-track" />
+            <circle cx="60" cy="60" r="52" class="ring-fill" id="ringFill" />
+          </svg>
+          <div class="ring-center">
+            <span class="ring-value" id="ringValue">0%</span>
+            <span class="ring-label">done</span>
+          </div>
+        </div>
+        <p class="progress-caption" id="progressCaption">0 of 0 tasks complete</p>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main" id="mainContent">
+
+      <!-- Stats strip -->
+      <section class="stats-strip" aria-label="Task statistics">
+        <div class="stat-card" data-stat="total">
+          <span class="stat-label">Total Tasks</span>
+          <span class="stat-value" data-value="total">0</span>
+          <i class="fa-solid fa-list-check stat-icon" aria-hidden="true"></i>
+        </div>
+        <div class="stat-card" data-stat="active">
+          <span class="stat-label">Active</span>
+          <span class="stat-value" data-value="active">0</span>
+          <i class="fa-regular fa-circle stat-icon" aria-hidden="true"></i>
+        </div>
+        <div class="stat-card" data-stat="completed">
+          <span class="stat-label">Completed</span>
+          <span class="stat-value" data-value="completed">0</span>
+          <i class="fa-solid fa-circle-check stat-icon" aria-hidden="true"></i>
+        </div>
+        <div class="stat-card is-warn" data-stat="overdue">
+          <span class="stat-label">Overdue</span>
+          <span class="stat-value" data-value="overdue">0</span>
+          <i class="fa-solid fa-triangle-exclamation stat-icon" aria-hidden="true"></i>
+        </div>
+        <div class="stat-card is-accent" data-stat="highPriority">
+          <span class="stat-label">High Priority</span>
+          <span class="stat-value" data-value="highPriority">0</span>
+          <i class="fa-solid fa-fire stat-icon" aria-hidden="true"></i>
+        </div>
+      </section>
+
+      <!-- Toolbar -->
+      <section class="toolbar">
+        <div class="toolbar-left">
+          <h2 class="view-title" id="viewTitle">All Tasks</h2>
+          <span class="view-subtitle" id="viewSubtitle">0 entries</span>
+        </div>
+        <div class="toolbar-right">
+          <label class="sort-control">
+            <i class="fa-solid fa-arrow-down-wide-short"></i>
+            <select id="sortSelect" aria-label="Sort tasks">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="priority">Priority</option>
+              <option value="dueDate">Due Date</option>
+              <option value="alphabetical">Alphabetical</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <!-- Task list -->
+      <section class="task-list" id="taskList" aria-live="polite"></section>
+
+      <!-- Empty state -->
+      <section class="empty-state" id="emptyState" hidden>
+        <div class="empty-illustration" aria-hidden="true">
+          <i class="fa-regular fa-clipboard"></i>
+        </div>
+        <h3 id="emptyTitle">No entries yet</h3>
+        <p id="emptyText">This ledger is clean. Add your first task to get started.</p>
+        <button class="btn btn-primary" id="emptyAddTask" type="button">
+          <i class="fa-solid fa-plus"></i><span>New Task</span>
+        </button>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- Mobile filter toggle -->
+<button class="mobile-filter-btn" id="mobileFilterBtn" type="button" aria-label="Open filters">
+  <i class="fa-solid fa-sliders"></i>
+</button>
+
+<!-- ============ TASK MODAL (create / view / edit) ============ -->
+<div class="modal-overlay" id="taskModalOverlay" hidden>
+  <div class="modal task-modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+    <header class="modal-header">
+      <h2 id="taskModalTitle">New Task</h2>
+      <button class="icon-btn" id="closeTaskModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </header>
+
+    <form class="task-form" id="taskForm" novalidate>
+      <input type="hidden" id="taskId" />
+
+      <div class="form-row">
+        <label for="taskTitle">Title <span class="req">*</span></label>
+        <input type="text" id="taskTitle" maxlength="120" placeholder="What needs to be done?" required />
+        <span class="field-error" id="titleError" role="alert"></span>
+      </div>
+
+      <div class="form-row">
+        <label for="taskDescription">Description</label>
+        <textarea id="taskDescription" rows="3" maxlength="500" placeholder="Add more detail (optional)"></textarea>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="taskPriority">Priority</label>
+          <div class="priority-select" id="prioritySelect" role="radiogroup" aria-label="Priority">
+            <button type="button" class="priority-opt" data-priority="low" role="radio" aria-checked="false">Low</button>
+            <button type="button" class="priority-opt" data-priority="medium" role="radio" aria-checked="false">Medium</button>
+            <button type="button" class="priority-opt" data-priority="high" role="radio" aria-checked="false">High</button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label for="taskCategory">Category</label>
+          <select id="taskCategory"></select>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="taskDueDate">Due date</label>
+          <input type="date" id="taskDueDate" />
+        </div>
+
+        <div class="form-row">
+          <label for="taskTagInput">Tags</label>
+          <div class="tag-input" id="tagInput">
+            <div class="tag-chips" id="tagChips"></div>
+            <input type="text" id="taskTagInput" placeholder="Type and press Enter" />
+          </div>
+        </div>
+      </div>
+
+      <div class="form-meta" id="formMeta" hidden>
+        <span id="metaCreated"></span>
+        <span id="metaStatus"></span>
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="cancelTaskForm">Close</button>
+        <button type="button" class="btn btn-primary" id="editFromView" hidden>
+          <i class="fa-regular fa-pen-to-square"></i><span>Edit Task</span>
+        </button>
+        <button type="submit" class="btn btn-primary" id="submitTaskForm">
+          <i class="fa-solid fa-check"></i><span>Save Task</span>
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CONFIRM DIALOG ============ -->
+<div class="modal-overlay" id="confirmOverlay" hidden>
+  <div class="modal confirm-modal" role="alertdialog" aria-modal="true" aria-labelledby="confirmTitle" aria-describedby="confirmText">
+    <div class="confirm-icon" aria-hidden="true"><i class="fa-solid fa-trash-can"></i></div>
+    <h2 id="confirmTitle">Delete this task?</h2>
+    <p id="confirmText">This action can't be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="confirmCancel" type="button">Cancel</button>
+      <button class="btn btn-danger" id="confirmAccept" type="button">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="todo-app/js/utils.js"></script>
+<script src="todo-app/js/storage.js"></script>
+<script src="todo-app/js/tasks.js"></script>
+<script src="todo-app/js/ui.js"></script>
+<script src="todo-app/js/app.js"></script>
+</body>
+</html>
