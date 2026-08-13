@@ -1,4 +1,4 @@
-# Ledger — Task Workspace
+# Todo-App
 
 A production-quality, fully animated task management app built with **vanilla HTML5, CSS3, and JavaScript (ES6+)** — no frameworks, no build step. Tasks persist in `localStorage`.
 
