@@ -128,7 +128,8 @@ npx serve .
 - Multi-device sync via a backend (the module boundaries here make swapping `storage.js` for an API client straightforward without touching `ui.js` or `app.js`)
 - Undo toast after delete instead of only a confirm dialog
 - PWA support (offline caching, installable)
-  ![Home](todo-app/images/home.png)
+
+  ![Home](todo-app/images/Home.png)
   ![Create Todo](todo-app/images/create-todo-task.png)
   ![Editing Todo](todo-app/images/editi-task-todo-list.png)
   ![Home Dark](todo-app/images/todo-black-1.png)
